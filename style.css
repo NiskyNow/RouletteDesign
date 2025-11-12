@@ -158,6 +158,8 @@ textarea {
     width: 835px; /* 直径835 */
     height: 835px;
     background: var(--base-color);
+    /* 土台の外側に落ちる、少しぼかした影 */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2), inset 0 0 20px rgba(0,0,0,0.1);
     z-index: 1;
 }
 
@@ -165,6 +167,8 @@ textarea {
     width: calc(415px * 2); /* 半径415 */
     height: calc(415px * 2);
     background: var(--segments-gradient); 
+    /* ウィールの内側になる部分に、うっすらと内向きの影を追加 */
+    box-shadow: inset 0 0 40px 20px rgba(0,0,0,0.15);
     z-index: 2;
 }
 
@@ -179,8 +183,11 @@ textarea {
     height: 835px;
     background: transparent; /* ドーナツ型なので背景は透明 */
     border: 50px solid var(--wheel-color); /* 幅50 */
-    /* 内側のラインは box-shadow で表現 */
-    box-shadow: inset 0 0 0 8px var(--wheel-line-color);
+    /* 複数の影をカンマで区切って指定 */
+    box-shadow: 
+        inset 0 0 0 8px var(--wheel-line-color), /* 内側のライン */
+        inset 0 5px 15px rgba(0,0,0,0.1),      /* 内側に落ちる影（くぼんで見える効果） */
+        0 2px 5px rgba(0,0,0,0.1);             /* 外側に落ちるわずかな影 */
     z-index: 4;
 }
 
@@ -200,6 +207,8 @@ textarea {
     height: 160px;
     background: var(--hub-bg-color);
     border: 5px solid var(--hub-border-color); /* 幅5 */
+    /* 下方向に落ちる影で、浮いているように見せる */
+    box-shadow: 0 8px 15px rgba(0,0,0,0.2);
     z-index: 5;
 }
 
@@ -208,5 +217,7 @@ textarea {
     height: 43px;
     background: var(--axis-color);
     border: 2px solid rgba(0,0,0,0.1);
-    z-index: 6;
+    /* 軸が少し窪んで見えるように内側の影のみにする */
+    box-shadow: inset 0 3px 8px rgba(0,0,0,0.2);
+    z-index: 5; /* ハブと同じ高さに変更 */
 }

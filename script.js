@@ -14,7 +14,8 @@ document.addEventListener("DOMContentLoaded", () => {
             axis: "#5a5a5a",        // ハブ中心の軸
             segments: ["#ff8c00", "#ffd700", "#32cd32", "#4682b4", "#9370db", "#ff69b4", "#dc143c", "#00ced1", "#ff4500", "#8a2be2"]
         },
-        segmentRadius: 372.5
+        segmentRadius: 372.5,
+        shadowIntensity: 1.0 // 影の強さ (1.0がデフォルト)
     };
 
     // 複数プロファイルが読み込まれた際のデータを保持するオブジェクト
@@ -28,6 +29,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const basicColorsContainer = document.getElementById("basic-colors");
     const segmentColorsContainer = document.getElementById("segment-colors");
     const dividersContainer = document.getElementById("dividers");
+
+    // ルーレットパーツ
+    const baseEl = document.getElementById('base');
+    const segmentsEl = document.getElementById('segments');
+    const wheelEl = document.getElementById('wheel');
+    const hubEl = document.getElementById('hub');
+    const axisEl = document.getElementById('axis');
 
     // セグメント数UI
     const addSegmentBtn = document.getElementById("add-segment-btn");
@@ -46,6 +54,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // レイアウトUI
     const radiusSlider = document.getElementById("radius-slider");
     const radiusValue = document.getElementById("radius-value");
+    const shadowSlider = document.getElementById("shadow-slider");
+    const shadowValue = document.getElementById("shadow-value");
 
     // プロファイル選択UI
     const profileSelector = document.getElementById("profile-selector");
@@ -209,16 +219,40 @@ document.addEventListener("DOMContentLoaded", () => {
         saveCurrentProfile(); // 変更を現在のプロファイルに保存
     }
 
+    // 影の強さを各パーツに適用
+    function applyShadows() {
+        const i = settings.shadowIntensity;
+        shadowValue.textContent = parseFloat(i).toFixed(2);
+
+        // 各パーツのbox-shadowを係数 `i` を使って動的に設定
+        baseEl.style.boxShadow = `0 ${10*i}px ${25*i}px rgba(0,0,0,${0.2*i}), inset 0 0 ${20*i}px rgba(0,0,0,${0.1*i})`;
+        segmentsEl.style.boxShadow = `inset 0 0 ${40*i}px ${20*i}px rgba(0,0,0,${0.15*i})`;
+        wheelEl.style.boxShadow = `inset 0 0 0 8px var(--wheel-line-color), inset 0 ${5*i}px ${15*i}px rgba(0,0,0,${0.1*i}), 0 ${2*i}px ${5*i}px rgba(0,0,0,${0.1*i})`;
+        hubEl.style.boxShadow = `0 ${8*i}px ${15*i}px rgba(0,0,0,${0.2*i})`;
+        axisEl.style.boxShadow = `inset 0 3px 8px rgba(0,0,0,0.2)`; // 影の強さスライダーの影響を受けないように固定値に変更
+
+        saveCurrentProfile(); // 変更を現在のプロファイルに保存
+    }
+
+    function handleShadowChange() {
+        settings.shadowIntensity = shadowSlider.value;
+        applyShadows();
+    }
+
     // 全ての描画を更新 (プロファイル読み込み時など)
     function updateAllVisuals() {
         createColorPickers(); // ピッカーを再生成 (セグメント数が変わる可能性があるため)
         createDividers();     // 仕切り線を再生成
         applyColors();
         applyRadius();
+        applyShadows(); // 影も再適用
         
         // スライダーの値も更新
         radiusSlider.value = settings.segmentRadius;
         radiusValue.textContent = settings.segmentRadius;
+        shadowSlider.value = settings.shadowIntensity;
+        shadowValue.textContent = parseFloat(settings.shadowIntensity).toFixed(2);
+
         updateSegmentCountDisplay(); // セグメント数表示も更新
     }
 
@@ -454,6 +488,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- イベントリスナー登録 ---
     radiusSlider.addEventListener('input', applyRadius);
+    shadowSlider.addEventListener('input', handleShadowChange);
     exportBtn.addEventListener('click', exportProfile);
     importBtn.addEventListener('click', () => profileFileInput.click()); // ボタンクリックでファイル選択を開く
     profileFileInput.addEventListener('change', importProfile);
