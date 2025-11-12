@@ -93,16 +93,27 @@ select {
 button:hover {
     background: #0056b3;
 }
-button#profile-delete {
+button#profile-delete-btn {
     background: #dc3545;
 }
-button#profile-delete:hover {
+button#profile-delete-btn:hover {
     background: #a71d2a;
 }
 textarea {
     width: 100%;
     box-sizing: border-box;
     font-family: monospace;
+}
+.profile-main-controls {
+    display: flex;
+    gap: 5px;
+}
+.profile-main-controls select {
+    flex-grow: 1;
+}
+.profile-main-controls button {
+    width: auto;
+    flex-shrink: 0;
 }
 
 .picker-grid {

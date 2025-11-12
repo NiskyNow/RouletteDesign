@@ -19,17 +19,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 複数プロファイルが読み込まれた際のデータを保持するオブジェクト
     let loadedProfiles = {};
+    
+    // 現在選択されているプロファイル名を保持
+    let currentProfileName = null;
 
     // --- DOM要素の取得 ---
     const root = document.documentElement;
     const basicColorsContainer = document.getElementById("basic-colors");
     const segmentColorsContainer = document.getElementById("segment-colors");
     const dividersContainer = document.getElementById("dividers");
+
+    // セグメント数UI
+    const addSegmentBtn = document.getElementById("add-segment-btn");
+    const removeSegmentBtn = document.getElementById("remove-segment-btn");
+    const segmentCountDisplay = document.getElementById("segment-count");
     
     // プロファイルUI
     const importBtn = document.getElementById("profile-import-btn");
     const exportBtn = document.getElementById("profile-export");
     const profileIO = document.getElementById("profile-io");
+    const newProfileBtn = document.getElementById("profile-new-btn");
+    const renameProfileBtn = document.getElementById("profile-rename-btn");
+    const deleteProfileBtn = document.getElementById("profile-delete-btn");
     const profileFileInput = document.getElementById("profile-file-input");
 
     // レイアウトUI
@@ -40,6 +51,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const profileSelector = document.getElementById("profile-selector");
 
     // --- カラーピッカー生成 ---
+    // カラーピッカーとテキスト入力を連動させるヘルパー関数
+    function linkColorPickerAndTextInput(picker, textInput, updateCallback) {
+        // カラーピッカーの変更をテキスト入力に反映
+        picker.addEventListener('input', (e) => {
+            textInput.value = e.target.value;
+            updateCallback(e.target.value);
+        });
+
+        // テキスト入力の変更をカラーピッカーに反映
+        textInput.addEventListener('change', (e) => {
+            // #から始まる7桁の16進数カラーコードの形式か簡易チェック
+            if (/^#[0-9a-fA-F]{6}$/.test(e.target.value)) {
+                picker.value = e.target.value;
+                updateCallback(e.target.value);
+            } else {
+                // 不正な値の場合は、現在のピッカーの色でテキスト入力を元に戻す
+                e.target.value = picker.value;
+            }
+        });
+    }
+
     function createColorPickers() {
         // コンテナをクリア
         basicColorsContainer.innerHTML = '';
@@ -48,6 +80,9 @@ document.addEventListener("DOMContentLoaded", () => {
         // 基本色
         for (const key in settings.colors) {
             if (key !== 'segments') {
+                const itemContainer = document.createElement('div');
+                itemContainer.className = 'color-item';
+
                 // ラベルのテキストを生成 (例: hubBg -> Hub Bg)
                 const labelText = key
                     .replace(/([A-Z])/g, ' $1') // 大文字の前にスペース
@@ -67,19 +102,28 @@ document.addEventListener("DOMContentLoaded", () => {
                 picker.type = 'color';
                 picker.id = `picker-${key}`;
                 picker.value = settings.colors[key];
-                
-                picker.addEventListener('input', (e) => {
-                    settings.colors[key] = e.target.value;
+
+                const textInput = document.createElement('input');
+                textInput.type = 'text';
+                textInput.className = 'color-text-input';
+                textInput.value = settings.colors[key];
+
+                // ピッカーとテキスト入力を連動させる
+                linkColorPickerAndTextInput(picker, textInput, (newValue) => {
+                    settings.colors[key] = newValue;
                     applyColors();
                 });
-                
-                basicColorsContainer.appendChild(label);
-                basicColorsContainer.appendChild(picker);
+
+                itemContainer.append(label, picker, textInput);
+                basicColorsContainer.appendChild(itemContainer);
             }
         }
 
         // セグメント色
         settings.colors.segments.forEach((color, index) => {
+            const itemContainer = document.createElement('div');
+            itemContainer.className = 'color-item';
+
             const label = document.createElement('label');
             label.htmlFor = `segment-${index}`;
             label.textContent = `Seg ${index + 1}`;
@@ -88,14 +132,20 @@ document.addEventListener("DOMContentLoaded", () => {
             picker.type = 'color';
             picker.id = `segment-${index}`;
             picker.value = color;
-            
-            picker.addEventListener('input', (e) => {
-                settings.colors.segments[index] = e.target.value;
+
+            const textInput = document.createElement('input');
+            textInput.type = 'text';
+            textInput.className = 'color-text-input';
+            textInput.value = color;
+
+            // ピッカーとテキスト入力を連動させる
+            linkColorPickerAndTextInput(picker, textInput, (newValue) => {
+                settings.colors.segments[index] = newValue;
                 applyColors();
             });
-            
-            segmentColorsContainer.appendChild(label);
-            segmentColorsContainer.appendChild(picker);
+
+            itemContainer.append(label, picker, textInput);
+            segmentColorsContainer.appendChild(itemContainer);
         });
     }
 
@@ -147,7 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         root.style.setProperty('--segments-gradient', `conic-gradient(${gradientStops.join(', ')})`);
-        saveSettingsToLocalStorage(); // 変更を保存
+        saveCurrentProfile(); // 変更を現在のプロファイルに保存
     }
 
     // 半径をCSSカスタムプロパティに適用
@@ -155,7 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
         settings.segmentRadius = parseFloat(radiusSlider.value);
         radiusValue.textContent = settings.segmentRadius;
         root.style.setProperty('--segment-radius', `${settings.segmentRadius}px`);
-        saveSettingsToLocalStorage(); // 変更を保存
+        saveCurrentProfile(); // 変更を現在のプロファイルに保存
     }
 
     // 全ての描画を更新 (プロファイル読み込み時など)
@@ -168,6 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // スライダーの値も更新
         radiusSlider.value = settings.segmentRadius;
         radiusValue.textContent = settings.segmentRadius;
+        updateSegmentCountDisplay(); // セグメント数表示も更新
     }
 
     // --- プロファイル選択ロジック ---
@@ -192,8 +243,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         profileSelector.disabled = false;
-        // 最初のプロファイルを自動で適用
-        applyProfile(profileNames[0]);
+        
+        // 以前選択していたプロファイルがあればそれを、なければ最初のプロファイルを適用
+        const profileToSelect = currentProfileName && loadedProfiles[currentProfileName] ? currentProfileName : profileNames[0];
+        profileSelector.value = profileToSelect;
+        applyProfile(profileToSelect);
     }
 
     // --- ファイルI/O ロジック ---
@@ -264,38 +318,138 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         // グローバル設定を選択されたプロファイルで上書き
         settings = loadedProfiles[profileName];
+        currentProfileName = profileName; // 現在のプロファイル名を更新
         profileSelector.value = profileName; // ドロップダウンの選択状態を更新
         updateAllVisuals(); // 画面全体を更新
-        saveSettingsToLocalStorage(); // 変更をlocalStorageに保存
+        saveProfilesToLocalStorage(); // プロファイル全体をlocalStorageに保存
+    }
+
+    // --- プロファイル管理ロジック (新規, 名前変更, 削除) ---
+    function createNewProfile() {
+        const newName = prompt("新しいプロファイル名を入力してください:", "新しいプロファイル");
+        if (!newName) {
+            return; // キャンセルされた場合
+        }
+        if (loadedProfiles[newName]) {
+            alert("エラー: 同じ名前のプロファイルが既に存在します。");
+            return;
+        }
+        // 現在の設定をディープコピーして新しいプロファイルを作成
+        loadedProfiles[newName] = JSON.parse(JSON.stringify(settings));
+        currentProfileName = newName; // 新しく作ったものを選択状態に
+        updateProfileSelector();
+        alert(`プロファイル「${newName}」を作成しました。`);
+    }
+
+    function renameCurrentProfile() {
+        if (!currentProfileName) {
+            alert("名前を変更するプロファイルが選択されていません。");
+            return;
+        }
+        const newName = prompt("新しいプロファイル名を入力してください:", currentProfileName);
+        if (!newName || newName === currentProfileName) {
+            return; // キャンセルされたか、名前が変わっていない場合
+        }
+        if (loadedProfiles[newName]) {
+            alert("エラー: 同じ名前のプロファイルが既に存在します。");
+            return;
+        }
+
+        // 新しい名前で設定を保存し、古い名前のものを削除
+        loadedProfiles[newName] = loadedProfiles[currentProfileName];
+        delete loadedProfiles[currentProfileName];
+
+        currentProfileName = newName; // 現在のプロファイル名を更新
+        updateProfileSelector();
+        alert(`プロファイル名を「${newName}」に変更しました。`);
+    }
+
+    function deleteCurrentProfile() {
+        if (!currentProfileName) {
+            alert("削除するプロファイルが選択されていません。");
+            return;
+        }
+        if (Object.keys(loadedProfiles).length <= 1) {
+            alert("最後のプロファイルは削除できません。");
+            return;
+        }
+        if (confirm(`本当にプロファイル「${currentProfileName}」を削除しますか？この操作は元に戻せません。`)) {
+            const deletedName = currentProfileName;
+            delete loadedProfiles[currentProfileName];
+            currentProfileName = null; // 選択をリセット
+            updateProfileSelector(); // 残ったプロファイルの先頭が自動で選択される
+            alert(`プロファイル「${deletedName}」を削除しました。`);
+        }
     }
 
     // --- LocalStorage ロジック ---
-    function saveSettingsToLocalStorage() {
-        try {
-            localStorage.setItem('rouletteSettings', JSON.stringify(settings));
-        } catch (e) {
-            console.error("Failed to save settings to localStorage:", e);
+    function saveCurrentProfile() {
+        if (currentProfileName && loadedProfiles[currentProfileName]) {
+            // 現在のsettingsオブジェクトを、loadedProfilesの該当プロファイルに書き戻す
+            loadedProfiles[currentProfileName] = settings;
+            saveProfilesToLocalStorage();
         }
     }
 
-    function loadSettingsFromLocalStorage() {
-        const savedSettings = localStorage.getItem('rouletteSettings');
-        if (savedSettings) {
+    function saveProfilesToLocalStorage() {
+        try {
+            // プロファイルリスト全体と、最後に選択していたプロファイル名を保存
+            const dataToSave = {
+                profiles: loadedProfiles,
+                lastSelected: currentProfileName
+            };
+            localStorage.setItem('rouletteProfiles', JSON.stringify(dataToSave));
+        } catch (e) {
+            console.error("Failed to save profiles to localStorage:", e);
+        }
+    }
+
+    function loadProfilesFromLocalStorage() {
+        const savedData = localStorage.getItem('rouletteProfiles');
+        if (savedData) {
             try {
-                // 保存された設定でデフォルト値を上書きし、"前回終了時の設定"としてプロファイルリストに追加
-                settings = JSON.parse(savedSettings);
-                loadedProfiles = {
-                    '前回終了時の設定': settings
-                };
-                // 起動時は、他のプロファイルは読み込まれていないので、これだけをセレクターに表示
+                const parsedData = JSON.parse(savedData);
+                loadedProfiles = parsedData.profiles || {};
+                currentProfileName = parsedData.lastSelected || null;
                 updateProfileSelector();
             } catch (e) {
-                console.error("Failed to parse settings from localStorage. Using default settings.", e);
-                // パースに失敗した場合は、デフォルト設定を使い、壊れたデータを削除する
-                localStorage.removeItem('rouletteSettings');
+                console.error("Failed to parse profiles from localStorage. Using default settings.", e);
+                localStorage.removeItem('rouletteProfiles');
             }
         }
     }
+
+    // --- セグメント数操作ロジック ---
+    function updateSegmentCountDisplay() {
+        const count = settings.colors.segments.length;
+        segmentCountDisplay.textContent = count;
+        // 最小値・最大値に達したらボタンを無効化
+        removeSegmentBtn.disabled = count <= 2;
+        addSegmentBtn.disabled = count >= 30;
+    }
+
+    function addSegment() {
+        const segmentCount = settings.colors.segments.length;
+        if (segmentCount >= 30) {
+            alert("セグメントは最大30個までです。");
+            return;
+        }
+        // 新しいセグメントの色を決定（最後の色をコピーするか、デフォルト色を追加）
+        const newColor = segmentCount > 0 ? settings.colors.segments[segmentCount - 1] : '#ffffff';
+        settings.colors.segments.push(newColor);
+        updateAllVisuals(); // 画面を再描画
+    }
+
+    function removeSegment() {
+        const segmentCount = settings.colors.segments.length;
+        if (segmentCount <= 2) {
+            alert("セグメントは最低2個必要です。");
+            return;
+        }
+        settings.colors.segments.pop();
+        updateAllVisuals(); // 画面を再描画
+    }
+
 
     // --- イベントリスナー登録 ---
     radiusSlider.addEventListener('input', applyRadius);
@@ -303,14 +457,21 @@ document.addEventListener("DOMContentLoaded", () => {
     importBtn.addEventListener('click', () => profileFileInput.click()); // ボタンクリックでファイル選択を開く
     profileFileInput.addEventListener('change', importProfile);
     profileSelector.addEventListener('change', (e) => applyProfile(e.target.value));
+    addSegmentBtn.addEventListener('click', addSegment);
+    removeSegmentBtn.addEventListener('click', removeSegment);
+    newProfileBtn.addEventListener('click', createNewProfile);
+    renameProfileBtn.addEventListener('click', renameCurrentProfile);
+    deleteProfileBtn.addEventListener('click', deleteCurrentProfile);
 
     // --- 初期化処理 ---
     function init() {
-        loadSettingsFromLocalStorage(); // 起動時に前回の設定を読み込む
-        // loadSettingsFromLocalStorageがセレクタ更新と描画更新を行うため、
+        loadProfilesFromLocalStorage(); // 起動時に保存されたプロファイルリストを読み込む
+        // loadProfilesFromLocalStorageがセレクタ更新と描画更新を行うため、
         // ここでのupdateAllVisuals()呼び出しは不要（重複になる）
         if (Object.keys(loadedProfiles).length === 0) {
-            updateAllVisuals(); // localStorageに何もない初回起動時のみ実行
+            // localStorageに何もない初回起動時は、デフォルト設定をプロファイルとして作成
+            loadedProfiles = { 'デフォルト設定': settings };
+            updateProfileSelector();
         }
     }
 

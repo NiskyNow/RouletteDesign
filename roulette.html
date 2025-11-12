@@ -16,7 +16,12 @@
             <div class="control-group">
                 <h3>プロファイル選択</h3>
                 <p>ファイルをインポートすると、ここにプロファイルが表示されます。</p>
-                <select id="profile-selector"></select>
+                <div class="profile-main-controls">
+                    <select id="profile-selector"></select>
+                    <button id="profile-new-btn" title="現在の設定を新しいプロファイルとして保存">新規</button>
+                    <button id="profile-rename-btn" title="選択中のプロファイル名を変更">名前変更</button>
+                    <button id="profile-delete-btn" title="選択中のプロファイルを削除">削除</button>
+                </div>
             </div>
 
             <div class="control-group">
@@ -39,13 +44,24 @@
             <div class="control-group">
                 <h3>基本色</h3>
                 <div id="basic-colors" class="picker-grid">
-                    </div>
+                </div>
+                <div id="basic-color-inputs" class="color-inputs">
+                </div>
             </div>
 
             <div class="control-group">
-                <h3>セグメント色 (扇形マス)</h3>
-                <div id="segment-colors" class="picker-grid">
+                <div class="segment-header">
+                    <h3>セグメント色 (扇形マス)</h3>
+                    <div class="segment-controls">
+                        <button id="remove-segment-btn" title="セグメントを減らす">-</button>
+                        <span id="segment-count">0</span>
+                        <button id="add-segment-btn" title="セグメントを増やす">+</button>
                     </div>
+                </div>
+                <div id="segment-colors" class="picker-grid">
+                </div>
+                <div id="segment-color-inputs" class="color-inputs">
+                </div>
             </div>
 
         </div>
