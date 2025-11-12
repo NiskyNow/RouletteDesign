@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ルーレット設定アプリ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+
+        <div class="color-settings">
+            <h2>ルーレット設定</h2>
+
+            <div class="control-group">
+                <h3>インポート / エクスポート</h3>
+                <p>JSONデータをペーストしてインポート、またはエクスポート</p>
+                <textarea id="profile-io" rows="5"></textarea>
+                <button id="profile-import">インポート (Text)</button>
+                <button id="profile-export">エクスポート (Downlaod)</button>
+            </div>
+
+            <div class="control-group">
+                <h3>レイアウト</h3>
+                <label for="radius-slider">扇形マスの半径: <span id="radius-value">0</span>px</label>
+                <input type="range" id="radius-slider" min="200" max="500" value="372.5">
+            </div>
+
+            <div class="control-group">
+                <h3>基本色</h3>
+                <div id="basic-colors" class="picker-grid">
+                    </div>
+            </div>
+
+            <div class="control-group">
+                <h3>セグメント色 (扇形マス)</h3>
+                <div id="segment-colors" class="picker-grid">
+                    </div>
+            </div>
+
+        </div>
+
+        <div class="roulette-container">
+            <div class="roulette-area">
+                <div class="roulette-part" id="base"></div>
+                <div class="roulette-part" id="wheel"></div>
+                <div class="roulette-part" id="segments"></div>
+                <div class="roulette-part" id="dividers">
+                    </div>
+                <div class="roulette-part" id="hub"></div>
+                <div class="roulette-part" id="axis"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

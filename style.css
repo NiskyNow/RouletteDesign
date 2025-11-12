@@ -1,0 +1,198 @@
+/* グローバル設定と:root 変数定義 */
+:root {
+    /* JSから制御する変数 (デフォルト値) */
+    --bg-color: #f0f0f0;
+    --base-color: #cccccc;
+    --divider-color: #333333;
+    --wheel-color: #aaaaaa;
+    --wheel-line-color: #999999;
+    --hub-bg-color: #888888;
+    --hub-border-color: #777777;
+    --axis-color: #666666;
+    
+    /* セグメントのグラデーション (JSが生成) */
+    --segments-gradient: conic-gradient(#f00 0% 50%, #00f 50% 100%);
+    
+    /* レイアウト (JSが制御) */
+    --segment-radius: 372.5px; 
+}
+
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: var(--bg-color);
+    color: #333;
+    transition: background-color 0.3s;
+}
+
+/* --- メインレイアウト --- */
+.app-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.color-settings {
+    flex: 1;
+    min-width: 350px;
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.roulette-container {
+    flex: 2;
+    min-width: 600px;
+    min-height: 600px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* --- 設定パネルのスタイル --- */
+.control-group {
+    margin-bottom: 25px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+.control-group:last-child {
+    border-bottom: none;
+}
+
+h2 {
+    margin-top: 0;
+}
+h3 {
+    margin-bottom: 10px;
+}
+
+select, button, input[type="range"] {
+    width: 100%;
+    margin-bottom: 5px;
+}
+button {
+    cursor: pointer;
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+button:hover {
+    background: #0056b3;
+}
+button#profile-delete {
+    background: #dc3545;
+}
+button#profile-delete:hover {
+    background: #a71d2a;
+}
+textarea {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: monospace;
+}
+
+.picker-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 8px;
+    align-items: center;
+}
+.picker-grid label {
+    justify-self: start;
+}
+.picker-grid input[type="color"] {
+    width: 100%;
+    height: 30px;
+    padding: 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* --- ルーレット本体のスタイル --- */
+.roulette-area {
+    /* サイズはJSが--segment-radiusを基に計算 (CSS変数でも可) */
+    /* ここでは 1000px x 1000px の親を想定 */
+    width: calc(var(--segment-radius) * 2);
+    height: calc(var(--segment-radius) * 2);
+    position: relative;
+    transform: scale(0.6); /* 表示調整用 (コンテナサイズに合わせて調整) */
+}
+
+.roulette-part {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    box-sizing: border-box;
+    transition: all 0.2s ease-out; /* 色やサイズの変更をスムーズに */
+}
+
+/* 重ね順 (z-index) */
+#base {
+    width: 900px;
+    height: 900px;
+    background: var(--base-color);
+    z-index: 1;
+}
+
+#wheel {
+    width: 800px;
+    height: 800px;
+    /* ★変更: radial-gradient を削除し、ベタ塗りに */
+    background: var(--wheel-color);
+    border: 8px solid var(--wheel-line-color); /* ★追加: ホイールの内側の線 */
+    z-index: 2;
+}
+
+#segments {
+    /* JSが--segment-radiusを基にサイズを設定 */
+    width: calc(var(--segment-radius) * 2);
+    height: calc(var(--segment-radius) * 2);
+    /* ※conic-gradient は扇形マスを描画するために必須のため残します */
+    background: var(--segments-gradient); 
+    z-index: 3;
+}
+
+#dividers {
+    /* JSが--segment-radiusを基にサイズを設定 */
+    width: calc(var(--segment-radius) * 2);
+    height: calc(var(--segment-radius) * 2);
+    z-index: 4;
+}
+
+/* JSが生成する仕切り線 */
+.divider-line {
+    position: absolute;
+    top: 0; /* JSが調整 */
+    left: 50%;
+    width: 4px; /* 仕切り線の太さ */
+    height: var(--segment-radius);
+    background: var(--divider-color);
+    transform-origin: bottom center;
+}
+
+#hub {
+    width: 150px;
+    height: 150px;
+    /* ★変更: radial-gradient を削除し、ベタ塗りに */
+    background: var(--hub-bg-color);
+    border: 10px solid var(--hub-border-color);
+    z-index: 5;
+}
+
+#axis {
+    width: 40px;
+    height: 40px;
+    background: var(--axis-color);
+    border: 2px solid rgba(0,0,0,0.1);
+    z-index: 6;
+}
