@@ -94,6 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // 補足説明が必要なキー
                 const descriptions = {
+                    bg: '（プレビュー背景）',
                     wheel: '（外周）', wheelLine: '（内側ライン）', hubBg: '（ハブ本体）', hubBorder: '（ハブ外周）', axis: '（中心軸）'
                 };
                 if (descriptions[key]) label.textContent += ` ${descriptions[key]}`;

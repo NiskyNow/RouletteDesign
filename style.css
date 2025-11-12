@@ -21,7 +21,7 @@ body {
     font-family: sans-serif;
     margin: 0;
     padding: 20px;
-    background-color: var(--bg-color);
+    background-color: #f0f0f0; /* ページ全体の背景は薄いグレーで固定 */
     color: #333;
     transition: background-color 0.3s;
 }
@@ -50,7 +50,7 @@ body {
     justify-content: center;
     align-items: center;
     padding: 20px;
-    background: #fff;
+    background: var(--bg-color); /* JSで制御する背景色をここに適用 */
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
