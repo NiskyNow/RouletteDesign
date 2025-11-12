@@ -14,11 +14,20 @@
             <h2>ルーレット設定</h2>
 
             <div class="control-group">
+                <h3>プロファイル選択</h3>
+                <p>ファイルをインポートすると、ここにプロファイルが表示されます。</p>
+                <select id="profile-selector"></select>
+            </div>
+
+            <div class="control-group">
                 <h3>インポート / エクスポート</h3>
-                <p>JSONデータをペーストしてインポート、またはエクスポート</p>
-                <textarea id="profile-io" rows="5"></textarea>
-                <button id="profile-import">インポート (Text)</button>
-                <button id="profile-export">エクスポート (Downlaod)</button>
+                <p>プロファイル(.json)をファイルから読み込みます。</p>
+                <input type="file" id="profile-file-input" accept=".json" style="display: none;">
+                <button id="profile-import-btn">ファイルを選択してインポート</button>
+                <hr style="margin: 20px 0;">
+                <p>現在の設定をJSONデータとしてエクスポートします。</p>
+                <textarea id="profile-io" rows="5" readonly placeholder="エクスポートされたJSONデータがここに表示されます。"></textarea>
+                <button id="profile-export">エクスポート (Download)</button>
             </div>
 
             <div class="control-group">
@@ -43,13 +52,12 @@
 
         <div class="roulette-container">
             <div class="roulette-area">
-                <div class="roulette-part" id="base"></div>
-                <div class="roulette-part" id="wheel"></div>
-                <div class="roulette-part" id="segments"></div>
-                <div class="roulette-part" id="dividers">
-                    </div>
-                <div class="roulette-part" id="hub"></div>
-                <div class="roulette-part" id="axis"></div>
+                <div class="roulette-part" id="base"></div>      <!-- レイヤー1: ルーレット土台 -->
+                <div class="roulette-part" id="segments"></div>   <!-- レイヤー2: 扇形マス -->
+                <div class="roulette-part" id="dividers"></div>   <!-- レイヤー3: 仕切り線 -->
+                <div class="roulette-part" id="wheel"></div>      <!-- レイヤー4: ウィール -->
+                <div class="roulette-part" id="hub"></div>        <!-- レイヤー4: ハブ -->
+                <div class="roulette-part" id="axis"></div>       <!-- レイヤー5: 軸 -->
             </div>
         </div>
 

@@ -1,14 +1,14 @@
 /* グローバル設定と:root 変数定義 */
 :root {
     /* JSから制御する変数 (デフォルト値) */
-    --bg-color: #f0f0f0;
-    --base-color: #cccccc;
-    --divider-color: #333333;
-    --wheel-color: #aaaaaa;
-    --wheel-line-color: #999999;
-    --hub-bg-color: #888888;
-    --hub-border-color: #777777;
-    --axis-color: #666666;
+    --bg-color: #f0f0f0; /* 背景 */
+    --base-color: #d9d9d9; /* ルーレット土台 */
+    --divider-color: #333333; /* マスの仕切り線 */
+    --wheel-color: #fffacd; /* ウィール */
+    --wheel-line-color: #f0e68c; /* ウィールの内側のライン */
+    --hub-bg-color: #d3d3d3; /* ハブ */
+    --hub-border-color: #a9a9a9; /* ハブの外周 */
+    --axis-color: #5a5a5a; /* ハブ中心の軸 */
     
     /* セグメントのグラデーション (JSが生成) */
     --segments-gradient: conic-gradient(#f00 0% 50%, #00f 50% 100%);
@@ -84,6 +84,12 @@ button {
     padding: 8px 12px;
     border-radius: 4px;
 }
+select {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+}
 button:hover {
     background: #0056b3;
 }
@@ -138,34 +144,32 @@ textarea {
 
 /* 重ね順 (z-index) */
 #base {
-    width: 900px;
-    height: 900px;
+    width: 835px; /* 直径835 */
+    height: 835px;
     background: var(--base-color);
     z-index: 1;
 }
 
-#wheel {
-    width: 800px;
-    height: 800px;
-    /* ★変更: radial-gradient を削除し、ベタ塗りに */
-    background: var(--wheel-color);
-    border: 8px solid var(--wheel-line-color); /* ★追加: ホイールの内側の線 */
+#segments {
+    width: calc(415px * 2); /* 半径415 */
+    height: calc(415px * 2);
+    background: var(--segments-gradient); 
     z-index: 2;
 }
 
-#segments {
-    /* JSが--segment-radiusを基にサイズを設定 */
-    width: calc(var(--segment-radius) * 2);
-    height: calc(var(--segment-radius) * 2);
-    /* ※conic-gradient は扇形マスを描画するために必須のため残します */
-    background: var(--segments-gradient); 
+#dividers {
+    width: calc(415px * 2); /* 半径415 */
+    height: calc(415px * 2);
     z-index: 3;
 }
 
-#dividers {
-    /* JSが--segment-radiusを基にサイズを設定 */
-    width: calc(var(--segment-radius) * 2);
-    height: calc(var(--segment-radius) * 2);
+#wheel {
+    width: 835px; /* 土台と同じ外周 */
+    height: 835px;
+    background: transparent; /* ドーナツ型なので背景は透明 */
+    border: 50px solid var(--wheel-color); /* 幅50 */
+    /* 内側のラインは box-shadow で表現 */
+    box-shadow: inset 0 0 0 8px var(--wheel-line-color);
     z-index: 4;
 }
 
@@ -174,24 +178,23 @@ textarea {
     position: absolute;
     top: 0; /* JSが調整 */
     left: 50%;
-    width: 4px; /* 仕切り線の太さ */
-    height: var(--segment-radius);
+    width: 5px; /* 幅5 */
+    height: 415px; /* 扇の半径と同じ */
     background: var(--divider-color);
     transform-origin: bottom center;
 }
 
 #hub {
-    width: 150px;
-    height: 150px;
-    /* ★変更: radial-gradient を削除し、ベタ塗りに */
+    width: 160px; /* 半径80 -> 直径160 */
+    height: 160px;
     background: var(--hub-bg-color);
-    border: 10px solid var(--hub-border-color);
+    border: 5px solid var(--hub-border-color); /* 幅5 */
     z-index: 5;
 }
 
 #axis {
-    width: 40px;
-    height: 40px;
+    width: 43px; /* 直径43 */
+    height: 43px;
     background: var(--axis-color);
     border: 2px solid rgba(0,0,0,0.1);
     z-index: 6;
